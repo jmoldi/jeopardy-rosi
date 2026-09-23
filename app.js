@@ -148,11 +148,11 @@ function hydrateTextareas() {
 function renderGame() {
   const board = state.boards[state.activeBoard];
   app.innerHTML = `<div class="shell game-shell">
-    <header class="game-header">${brand()}<div class="round-label"><p>Board ${state.activeBoard + 1} von ${state.boards.length}</p><h2>${escapeHtml(board.title)}</h2></div><div class="top-actions"><button class="btn btn-ghost btn-small" data-action="setup">Bearbeiten</button><button class="btn btn-small" data-action="show-score">Punktestand</button></div></header>
+    <header class="game-header">${brand()}<div class="round-label"><p>Board ${state.activeBoard + 1} von ${state.boards.length}</p><h2>${escapeHtml(board.title)}</h2></div><div class="top-actions"><button class="btn btn-danger btn-small" data-action="reset-game">Spiel zurücksetzen</button><button class="btn btn-ghost btn-small" data-action="setup">Bearbeiten</button><button class="btn btn-small" data-action="show-score">Punktestand</button></div></header>
     <div class="score-strip" style="--team-count:${state.teams.length}">${state.teams.map((team, i) => `<button class="score-card ${i === state.activeTeam ? "active" : ""}" style="--team-color:${team.color}" data-action="set-active-team" data-index="${i}"><small>${i === state.activeTeam ? "Ist am Zug" : "Team wählen"}</small><strong>${escapeHtml(team.name)}</strong><span>${team.score} Punkte</span></button>`).join("")}</div>
     <section class="jeopardy-board" style="--columns:${board.columns}">
       ${board.categories.map(category => `<div class="category-cell">${escapeHtml(category.name)}</div>`).join("")}
-      ${Array.from({length: board.rows}, (_, ri) => board.categories.map((category, ci) => { const clue = category.clues[ri]; return `<button class="clue-cell ${clue.used ? "used" : ""}" data-action="open-clue" data-category="${ci}" data-row="${ri}" ${clue.used ? "disabled" : ""}>${clue.used ? "" : clue.value}</button>`; }).join("")).join("")}
+      ${Array.from({length: board.rows}, (_, ri) => board.categories.map((category, ci) => { const clue = category.clues[ri]; return `<button class="clue-cell ${clue.used ? "used" : ""}" data-action="open-clue" data-category="${ci}" data-row="${ri}" ${clue.used ? "disabled" : ""} aria-label="${clue.value} Punkte${clue.used ? ", bereits gespielt" : ""}">${clue.value}</button>`; }).join("")).join("")}
     </section>
   </div>`;
 }
@@ -199,7 +199,7 @@ function renderScoreboard(final = false) {
       ${final ? '<span class="winner-badge">🏆 Gewinnerteam</span><p class="eyebrow">Was für ein Finale</p><h1><span class="gold-text">${escapeHtml(ranked[0].name)}</span> gewinnt!</h1>' : '<p class="eyebrow">Zwischenstand</p><h1>So steht’s.</h1>'}
       <p class="lede" style="margin-inline:auto">${final ? "Herzlichen Glückwunsch – und vor allem: einen großartigen Start in den Ruhestand!" : `Nach ${escapeHtml(state.boards[state.activeBoard].title)} ist noch alles möglich.`}</p>
       <div class="rankings">${ranked.map((team, i) => `<div class="ranking ${i === 0 ? "winner" : ""}"><span class="rank">${String(i+1).padStart(2,"0")}</span><strong>${escapeHtml(team.name)}</strong><span class="ranking-score">${team.score} P</span></div>`).join("")}</div>
-      <div class="top-actions" style="justify-content:center">${!final && !allDone ? '<button class="btn btn-primary" data-action="next-board">Nächstes Board →</button>' : !final ? '<button class="btn btn-primary" data-action="finish-game">Finales Ergebnis →</button>' : '<button class="btn btn-primary" data-action="reset-game">Neue Runde starten</button>'}<button class="btn btn-ghost" data-action="setup">Spiel bearbeiten</button></div>
+      <div class="top-actions" style="justify-content:center">${!final && !allDone ? '<button class="btn btn-primary" data-action="next-board">Nächstes Board →</button>' : !final ? '<button class="btn btn-primary" data-action="finish-game">Finales Ergebnis →</button>' : '<button class="btn btn-primary" data-action="restart-game">Neue Runde starten</button>'}<button class="btn btn-ghost" data-action="setup">Spiel bearbeiten</button></div>
     </div></section>
   </div>`;
 }
@@ -213,6 +213,19 @@ function resizeBoard(board, columns, rows) {
     while (category.clues.length < rows) category.clues.push({ value: (category.clues.length + 1) * 100, question: "", answer: "", used: false });
     category.clues.length = rows;
   });
+}
+
+function resetGame() {
+  state.teams.forEach(team => team.score = 0);
+  state.boards.forEach(board => board.categories.forEach(category => category.clues.forEach(clue => clue.used = false)));
+  state.activeBoard = 0;
+  state.activeTeam = 0;
+  state.openClue = null;
+  state.screen = "welcome";
+  modal.hidden = true;
+  save();
+  render();
+  notify("Punkte und Spielfelder wurden zurückgesetzt.");
 }
 
 document.addEventListener("input", event => {
@@ -260,7 +273,8 @@ document.addEventListener("click", event => {
   if (action === "game") { state.screen = "game"; render(); }
   if (action === "next-board") { state.activeBoard += 1; state.screen = "game"; save(); render(); }
   if (action === "finish-game") { state.screen = "final"; render(); }
-  if (action === "reset-game") { state.teams.forEach(team => team.score = 0); state.boards.forEach(board => board.categories.forEach(category => category.clues.forEach(clue => clue.used = false))); state.activeBoard = 0; state.activeTeam = 0; state.screen = "welcome"; save(); render(); notify("Punkte und Spielfelder wurden zurückgesetzt."); }
+  if (action === "reset-game" && window.confirm("Möchtest du das laufende Spiel wirklich zurücksetzen? Alle Punkte und gespielten Felder werden gelöscht.")) resetGame();
+  if (action === "restart-game") resetGame();
   if (action === "export") exportGame();
   if (action === "import") document.querySelector("#import-file")?.click();
 });
