@@ -97,7 +97,7 @@ function renderWelcome() {
 
 function renderSetup() {
   app.innerHTML = `<div class="shell">
-    <header class="topbar">${brand()}<div class="top-actions"><button class="btn btn-ghost" data-action="home">← Startseite</button><button class="btn" data-action="export">Exportieren</button></div></header>
+    <header class="topbar">${brand()}<div class="top-actions"><button class="btn btn-danger" data-action="reset-setup">Setup zurücksetzen</button><button class="btn btn-ghost" data-action="home">← Startseite</button><button class="btn" data-action="export">Exportieren</button></div></header>
     <div class="setup-header"><div><p class="eyebrow">Spielvorbereitung</p><h1>Deine Show, deine Fragen.</h1><p class="lede">Erstelle Teams und fülle beliebig viele Spielbretter.</p></div><div class="stepper"><span class="step ${state.setupTab === "basics" ? "active" : ""}"></span><span class="step ${state.setupTab === "boards" ? "active" : ""}"></span></div></div>
     <div class="setup-grid">
       <section class="panel panel-pad">${state.setupTab === "basics" ? basicsEditor() : boardEditor()}</section>
@@ -148,7 +148,7 @@ function hydrateTextareas() {
 function renderGame() {
   const board = state.boards[state.activeBoard];
   app.innerHTML = `<div class="shell game-shell">
-    <header class="game-header">${brand()}<div class="round-label"><p>Board ${state.activeBoard + 1} von ${state.boards.length}</p><h2>${escapeHtml(board.title)}</h2></div><div class="top-actions"><button class="btn btn-danger btn-small" data-action="reset-game">Spiel zurücksetzen</button><button class="btn btn-ghost btn-small" data-action="setup">Bearbeiten</button><button class="btn btn-small" data-action="show-score">Punktestand</button></div></header>
+    <header class="game-header">${brand()}<div class="round-label"><p>Board ${state.activeBoard + 1} von ${state.boards.length}</p><h2>${escapeHtml(board.title)}</h2></div><div class="game-menu"><button class="btn btn-small" data-action="show-score">Punktestand</button><details class="action-menu"><summary class="btn btn-small" aria-label="Weitere Spieloptionen">⌄</summary><div class="action-menu-popover"><button data-action="setup">Spiel bearbeiten</button><button class="danger-link" data-action="reset-game">Spielstand zurücksetzen</button></div></details></div></header>
     <div class="score-strip" style="--team-count:${state.teams.length}">${state.teams.map((team, i) => `<button class="score-card ${i === state.activeTeam ? "active" : ""}" style="--team-color:${team.color}" data-action="set-active-team" data-index="${i}"><small>${i === state.activeTeam ? "Ist am Zug" : "Team wählen"}</small><strong>${escapeHtml(team.name)}</strong><span>${team.score} Punkte</span></button>`).join("")}</div>
     <section class="jeopardy-board" style="--columns:${board.columns}">
       ${board.categories.map(category => `<div class="category-cell">${escapeHtml(category.name)}</div>`).join("")}
@@ -221,11 +221,20 @@ function resetGame() {
   state.activeBoard = 0;
   state.activeTeam = 0;
   state.openClue = null;
-  state.screen = "welcome";
+  state.screen = "game";
   modal.hidden = true;
   save();
   render();
   notify("Punkte und Spielfelder wurden zurückgesetzt.");
+}
+
+function resetSetup() {
+  state = defaultState();
+  state.screen = "setup";
+  modal.hidden = true;
+  save();
+  render();
+  notify("Das gesamte Setup wurde zurückgesetzt.");
 }
 
 document.addEventListener("input", event => {
@@ -275,6 +284,7 @@ document.addEventListener("click", event => {
   if (action === "finish-game") { state.screen = "final"; render(); }
   if (action === "reset-game" && window.confirm("Möchtest du das laufende Spiel wirklich zurücksetzen? Alle Punkte und gespielten Felder werden gelöscht.")) resetGame();
   if (action === "restart-game") resetGame();
+  if (action === "reset-setup" && window.confirm("Möchtest du das gesamte Setup löschen? Teams, Boards, Fragen und Spielstand werden zurückgesetzt.")) resetSetup();
   if (action === "export") exportGame();
   if (action === "import") document.querySelector("#import-file")?.click();
 });
