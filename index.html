@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07142e" />
+    <title>Renten-Runde – Das Jeopardy zur Feier</title>
+    <meta name="description" content="Ein lokales, moderiertes Jeopardy-Spiel für eine unvergessliche Rentenfeier." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main id="app" aria-live="polite"></main>
+
+    <div id="modal" class="modal-backdrop" hidden>
+      <section class="question-modal" role="dialog" aria-modal="true" aria-labelledby="modal-category">
+        <button class="icon-button modal-close" data-action="close-question" aria-label="Frage schließen">×</button>
+        <p class="eyebrow" id="modal-category"></p>
+        <div class="question-value" id="modal-value"></div>
+        <h2 id="modal-question"></h2>
+        <div id="answer-wrap" class="answer-wrap" hidden>
+          <span>Richtige Antwort</span>
+          <p id="modal-answer"></p>
+        </div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
