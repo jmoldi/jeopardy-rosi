@@ -19,7 +19,7 @@ Das Repository benötigt keinen Build-Schritt. In den Repository-Einstellungen u
 - Setup für Titel, Ehrengast und ein bis sechs Teams
 - Mehrere Boards mit flexibel wählbaren Größen (3–6 Kategorien, 3–5 Fragen)
 - Individuelle Punkte, Fragen und Antworten
-- Moderierter Spielablauf mit frei wechselbarem aktivem Team
+- Moderierter Spielablauf mit frei wechselbarem aktivem Team und Punktevergabe an mehrere Teams
 - Zwischenstände und finales Gewinner-Scoreboard
 - JSON-Import und -Export
 - Rein lokale Persistenz ohne Server oder Tracking

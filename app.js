@@ -158,13 +158,13 @@ function renderGame() {
 }
 
 function openClue(categoryIndex, rowIndex) {
-  state.openClue = { categoryIndex, rowIndex, revealed: false };
+  state.openClue = { categoryIndex, rowIndex, revealed: false, selectedTeamIds: [] };
   updateModal();
   modal.hidden = false;
 }
 
 function updateModal() {
-  const { categoryIndex, rowIndex, revealed } = state.openClue;
+  const { categoryIndex, rowIndex, revealed, selectedTeamIds = [] } = state.openClue;
   const category = state.boards[state.activeBoard].categories[categoryIndex];
   const clue = category.clues[rowIndex];
   document.querySelector("#modal-category").textContent = category.name;
@@ -173,7 +173,7 @@ function updateModal() {
   document.querySelector("#modal-answer").textContent = clue.answer || "Keine Antwort hinterlegt";
   document.querySelector("#answer-wrap").hidden = !revealed;
   document.querySelector("#modal-actions").innerHTML = revealed
-    ? `<div class="modal-team-picker"><span>Punkte für:</span><div>${state.teams.map((team, index) => `<button class="team-choice ${index === state.activeTeam ? "active" : ""}" style="--team-color:${team.color}" data-action="modal-team" data-index="${index}">${escapeHtml(team.name)}</button>`).join("")}</div></div><button class="btn btn-danger" data-action="score-wrong">Niemand wusste es</button><button class="btn btn-primary" data-action="score-correct">Richtig · +${clue.value}</button>`
+    ? `<div class="modal-team-picker"><span>Wer wusste es? Ein oder mehrere Teams auswählen:</span><div>${state.teams.map(team => { const selected = selectedTeamIds.includes(team.id); return `<button class="team-choice ${selected ? "active" : ""}" style="--team-color:${team.color}" data-action="modal-team" data-team-id="${team.id}" aria-pressed="${selected}">${escapeHtml(team.name)}</button>`; }).join("")}</div></div><button class="btn btn-danger" data-action="score-wrong">Niemand wusste es</button><button class="btn btn-primary" data-action="score-correct" ${selectedTeamIds.length ? "" : "disabled"}>${selectedTeamIds.length === 1 ? "Punkt vergeben" : `Punkte an ${selectedTeamIds.length} Teams`} · +${clue.value}</button>`
     : `<button class="btn btn-primary" data-action="reveal-answer">Antwort aufdecken</button>`;
 }
 
@@ -181,7 +181,12 @@ function resolveClue(correct) {
   const board = state.boards[state.activeBoard];
   const clue = board.categories[state.openClue.categoryIndex].clues[state.openClue.rowIndex];
   clue.used = true;
-  if (correct) state.teams[state.activeTeam].score += Number(clue.value) || 0;
+  if (correct) {
+    const selectedTeamIds = state.openClue.selectedTeamIds || [];
+    state.teams
+      .filter(team => selectedTeamIds.includes(team.id))
+      .forEach(team => team.score += Number(clue.value) || 0);
+  }
   modal.hidden = true;
   state.openClue = null;
   save();
@@ -275,7 +280,14 @@ document.addEventListener("click", event => {
   if (action === "open-clue") openClue(+button.dataset.category, +button.dataset.row);
   if (action === "close-question") { modal.hidden = true; state.openClue = null; }
   if (action === "reveal-answer") { state.openClue.revealed = true; updateModal(); }
-  if (action === "modal-team") { state.activeTeam = +button.dataset.index; save(); updateModal(); }
+  if (action === "modal-team") {
+    const selectedTeamIds = state.openClue.selectedTeamIds || [];
+    const teamId = button.dataset.teamId;
+    state.openClue.selectedTeamIds = selectedTeamIds.includes(teamId)
+      ? selectedTeamIds.filter(id => id !== teamId)
+      : [...selectedTeamIds, teamId];
+    updateModal();
+  }
   if (action === "score-correct") resolveClue(true);
   if (action === "score-wrong") resolveClue(false);
   if (action === "show-score") { state.screen = "scoreboard"; render(); }

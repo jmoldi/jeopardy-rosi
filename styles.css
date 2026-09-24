@@ -57,6 +57,8 @@ h2 { letter-spacing: -.035em; }
 .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,.14); }
 .btn-primary { color: #17223a; background: var(--gold); box-shadow: 0 10px 24px rgba(245, 200, 91, .16); }
 .btn-primary:hover { background: var(--gold-strong); }
+.btn:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+.btn:disabled:hover { background: var(--gold); }
 .btn-ghost { border: 1px solid var(--line); background: transparent; }
 .btn-danger { color: #ffd7d2; background: rgba(255, 126, 103, .13); }
 .btn-small { padding: 8px 12px; font-size: .85rem; }
@@ -164,7 +166,7 @@ h2 { letter-spacing: -.035em; }
 .modal-team-picker > span { display: block; margin-bottom: 10px; color: var(--muted); font-size: .8rem; }
 .modal-team-picker > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .team-choice { border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; color: var(--muted); background: transparent; font-size: .82rem; font-weight: 700; }
-.team-choice.active { border-color: var(--team-color); color: var(--ink); background: color-mix(in srgb, var(--team-color) 13%, transparent); }
+.team-choice.active { border-color: var(--team-color); color: var(--ink); background: color-mix(in srgb, var(--team-color) 20%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--team-color) 18%, transparent); }
 
 .scoreboard { min-height: calc(100vh - 140px); display: grid; place-items: center; text-align: center; }
 .scoreboard-inner { width: min(940px, 100%); }
